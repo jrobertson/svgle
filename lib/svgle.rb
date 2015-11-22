@@ -24,13 +24,23 @@ class Style < Hash
 
     super(k,v)
     @parent[:style] = self.map{|x| x.join(':') }.join(';')
+    @parent.callback.refresh
     
   end
 end
 
 class Attributes
   
-  def style
+  attr_reader :callback
+  
+  def initialize(parent: nil)
+    @callback = parent
+  end  
+  
+  def style(parent=nil)
+    
+    @callback ||= parent
+    
     if @style.nil? then
 
       h = self[:style].split(';').inject({}) do |r, x|
@@ -52,6 +62,9 @@ class Svgle < Rexle
   
   class Element < Rexle::Element
 
+    def initialize(name=nil, value: nil, attributes: Attributes.new(parent: self), rexle: nil)
+      super(name, value: value, attributes: attributes, rexle: rexle)
+    end
     
     def self.attr2_accessor(*a)
 
@@ -67,6 +80,8 @@ class Svgle < Rexle
 
           define_method (attribute.to_s + '=').to_sym do |val|
             attributes[attribute] = val
+            @rexle.refresh
+            val
           end
 
         end
@@ -74,7 +89,7 @@ class Svgle < Rexle
     end
     
     def style()
-      attributes.style
+      attributes.style(@rexle)
     end
   end
   
@@ -85,8 +100,12 @@ class Svgle < Rexle
   end    
   
   class Circle < Element
-    attr2_accessor *%i(cx cy r rx ry stroke stroke-width)
-  end  
+    attr2_accessor *%i(cx cy r stroke stroke-width)
+  end
+
+  class Ellipse < Element
+    attr2_accessor *%i(cx cy rx ry)
+  end    
 
   class G < Element
     attr2_accessor *%i(fill opacity)
@@ -121,6 +140,15 @@ class Svgle < Rexle
   end    
 
 
+  def initialize(x=nil,callback: nil)
+    super x
+    @callback = callback
+  end
+  
+  def refresh()
+    @callback.refresh if @callback
+  end
+    
   def scan_element(name, attributes=nil, *children)
 
     return Rexle::CData.new(children.first) if name == '!['
