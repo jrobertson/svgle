@@ -8,15 +8,54 @@ require 'rexle'
 #
 #    * https://developer.mozilla.org/en-US/docs/Web/SVG/Element
 #    * http://www.w3schools.com/svg/svg_reference.asp
+#    * http://tutorials.jenkov.com/svg/svg-transformation.html#transformation-example
+
+
+class Style < Hash
+
+  def initialize(parent, h)
+    @parent = parent
+
+    super().merge! h
+
+  end
+  
+  def []=(k,v)
+
+    super(k,v)
+    @parent[:style] = self.map{|x| x.join(':') }.join(';')
+    
+  end
+end
+
+class Attributes
+  
+  def style
+    if @style.nil? then
+
+      h = self[:style].split(';').inject({}) do |r, x|
+        k, v = x.split(':',2)
+        r.merge(k.to_sym => v)
+      end
+
+      @style = Style.new(self, h)
+
+      h
+    end
+    @style
+  end
+  
+end
 
 
 class Svgle < Rexle
-
+  
   class Element < Rexle::Element
+
     
     def self.attr2_accessor(*a)
 
-      a << :id
+      a.concat %i(id transform)
       
       a.each do |attribute|
 
@@ -32,7 +71,11 @@ class Svgle < Rexle
 
         end
       end
-    end  
+    end
+    
+    def style()
+      attributes.style
+    end
   end
   
   class A < Element
