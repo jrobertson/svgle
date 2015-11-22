@@ -4,26 +4,78 @@
 
 require 'rexle'
 
+# helpful SVG element references: 
+#
+#    * https://developer.mozilla.org/en-US/docs/Web/SVG/Element
+#    * http://www.w3schools.com/svg/svg_reference.asp
+
 
 class Svgle < Rexle
 
   class Element < Rexle::Element
+    
+    def self.attr2_accessor(*a)
+
+      a << :id
+      
+      a.each do |attribute|
+
+        class_eval do
+
+          define_method attribute.to_s.gsub('-','_').to_sym do 
+            attributes[attribute]
+          end
+
+          define_method (attribute.to_s + '=').to_sym do |val|
+            attributes[attribute] = val
+          end
+
+        end
+      end
+    end  
   end
+  
+  class A < Element
+    # undecided how to implement this 
+    #  see http://stackoverflow.com/questions/12422668/getting-xlinkhref-attribute-of-the-svg-image-element-dynamically-using-js-i
+    #attr2_accessor *%i(href)
+  end    
+  
+  class Circle < Element
+    attr2_accessor *%i(cx cy r rx ry stroke stroke-width)
+  end  
 
   class G < Element
+    attr2_accessor *%i(fill opacity)
   end
 
   class Line < Element
-    def x1()
-      attributes[:x1]
-    end
-    def x1=(v)
-      attributes[:x1] = v
-    end
+    attr2_accessor *%i(x1 y1 x2 y2)
+  end
+  
+  class Path < Element
+    attr2_accessor *%i(d stroke stroke-width fill)
+  end  
+    
+  class Polygon < Element
+    attr2_accessor *%i(points)
   end
 
+  class Polyline < Element
+    attr2_accessor *%i(points)
+  end    
+  
+  class Rect < Element
+    attr2_accessor *%i(x y width height rx ry)
+  end  
+
   class Svg < Element
+    attr2_accessor *%i(width height)
   end
+  
+  class Text < Element
+    attr2_accessor *%i(x y fill)
+  end    
 
 
   def scan_element(name, attributes=nil, *children)
