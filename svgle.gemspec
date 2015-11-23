@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'svgle'
-  s.version = '0.1.4'
+  s.version = '0.1.5'
   s.summary = '*Experimental gem under development.* Svgle (SVG + Rexle) generates an SVG Document Object Model from the given SVG. Suitable for accessing, or modifying SVG elements as objects.'
   s.authors = ['James Robertson']
   s.files = Dir['lib/svgle.rb']

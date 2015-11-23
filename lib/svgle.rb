@@ -64,11 +64,14 @@ class Svgle < Rexle
 
     def initialize(name=nil, value: nil, attributes: Attributes.new(parent: self), rexle: nil)
       super(name, value: value, attributes: attributes, rexle: rexle)
+      
+      @boundary_box = [[0,0,0,0]]
     end
     
     def self.attr2_accessor(*a)
 
       a.concat %i(id transform)
+      a.concat %i(onmousemove) # DOM events      
       
       a.each do |attribute|
 
@@ -91,6 +94,15 @@ class Svgle < Rexle
     def style()
       attributes.style(@rexle)
     end
+    
+    
+    def hotspot?(x,y)
+
+      (boundary.first.is_a?(Array) ? boundary : [boundary]).all? do |box|
+        x1, y1, x2, y2 = box
+        (x1..x2).include? x and (y1..y2).include? y
+      end
+    end    
   end
   
   class A < Element
@@ -101,42 +113,81 @@ class Svgle < Rexle
   
   class Circle < Element
     attr2_accessor *%i(cx cy r stroke stroke-width)
+    def boundary()
+      [0,0,0,0]
+    end    
   end
 
   class Ellipse < Element
     attr2_accessor *%i(cx cy rx ry)
+    def boundary()
+      [0,0,0,0]
+    end    
   end    
 
   class G < Element
     attr2_accessor *%i(fill opacity)
+    def boundary()
+      [0,0,0,0]
+    end    
   end
 
   class Line < Element
     attr2_accessor *%i(x1 y1 x2 y2)
+    
+    def boundary()
+      [0,0,0,0]
+    end
   end
   
   class Path < Element
     attr2_accessor *%i(d stroke stroke-width fill)
+    def boundary()
+      [0,0,0,0]
+    end    
   end  
     
   class Polygon < Element
     attr2_accessor *%i(points)
+    def boundary()
+      [0,0,0,0]
+    end    
   end
 
   class Polyline < Element
     attr2_accessor *%i(points)
+    def boundary()
+      [0,0,0,0]
+    end    
   end    
   
   class Rect < Element
+    
     attr2_accessor *%i(x y width height rx ry)
+    
+    def boundary()
+      x1, y1, w, h = [x, y, width, height].map(&:to_i)
+      [x1, y1, x1+w, y1+h]
+    end    
+    
   end  
 
+  class Script < Element
+
+  end  
+  
   class Svg < Element
     attr2_accessor *%i(width height)
+    def boundary()
+      [0,0,0,0]
+    end    
   end
   
   class Text < Element
     attr2_accessor *%i(x y fill)
+    def boundary()
+      [0,0,0,0]
+    end    
   end    
 
 
@@ -155,10 +206,18 @@ class Svgle < Rexle
     return Rexle::Comment.new(children.first) if name == '!-'
 
     type = {
+      circle: Svgle::Circle,
+      ellipse: Svgle::Ellipse,
       line: Svgle::Line,
       g: Svgle::G,
       svg: Svgle::Svg,
-      doc: Rexle::Element
+      script: Svgle::Script,
+      doc: Rexle::Element,
+      polygon: Svgle::Polygon,
+      polyline: Svgle::Polyline,
+      path: Svgle::Path,
+      rect: Svgle::Rect,
+      text: Svgle::Text
     }
 
     element = type[name.to_sym].new(name, attributes: attributes, rexle: self)  
