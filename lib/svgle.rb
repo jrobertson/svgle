@@ -73,7 +73,7 @@ class Svgle < Rexle
     def self.attr2_accessor(*a)
 
       a.concat %i(id transform)
-      a.concat %i(onmousemove) # DOM events      
+      a.concat %i(onmousemove onmousedown) # DOM events      
       
       a.each do |attribute|
 
