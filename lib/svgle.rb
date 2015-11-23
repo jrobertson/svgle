@@ -176,6 +176,11 @@ class Svgle < Rexle
 
   end  
   
+  class Style < Element
+
+  end  
+  
+  
   class Svg < Element
     attr2_accessor *%i(width height)
     def boundary()
@@ -191,13 +196,52 @@ class Svgle < Rexle
   end    
 
 
-  def initialize(x=nil,callback: nil)
+  def initialize(x=nil, callback: nil)
     super x
+    add_css()
     @callback = callback
   end
   
+  def inspect()    
+    "#<Svgle:%s>" % [self.object_id]
+  end  
+  
   def refresh()
     @callback.refresh if @callback
+  end
+  
+  private
+  
+  def add_css()
+
+    @doc.root.xpath('//style').each do |e|
+      
+      # parse the CSS
+      
+      a = e.text.split(/}/)[0..-2].map do |entry|
+
+        raw_selector,raw_styles = entry.split(/{/,2)
+
+        h = raw_styles.split(/;/).inject({}) do |r, x| 
+          k, v = x.split(/:/,2).map(&:strip)
+          r.merge(k.to_sym => v)
+        end
+
+        [raw_selector.split(/,\s*/).map(&:strip), h]
+      end      
+
+      
+      # add the CSS style attributes to the element
+      # e.g. a = [[['line'],{stroke: 'green'}]]
+      
+      a.each do |selectors, style|
+        selectors.each do |selector|
+          style.each {|k,v| self.at_css(selector).style[k] = v }
+        end
+      end
+      
+    end
+    
   end
     
   def scan_element(name, attributes=nil, *children)
@@ -212,6 +256,7 @@ class Svgle < Rexle
       g: Svgle::G,
       svg: Svgle::Svg,
       script: Svgle::Script,
+      style: Svgle::Style,
       doc: Rexle::Element,
       polygon: Svgle::Polygon,
       polyline: Svgle::Polyline,
