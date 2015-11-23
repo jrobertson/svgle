@@ -3,6 +3,7 @@
 # file: svgle.rb
 
 require 'rexle'
+require 'rxfhelper'
 
 # helpful SVG element references: 
 #
@@ -62,10 +63,11 @@ class Svgle < Rexle
   
   class Element < Rexle::Element
 
-    def initialize(name=nil, value: nil, attributes: Attributes.new(parent: self), rexle: nil)
+    def initialize(name=nil, value: nil, \
+                          attributes: Attributes.new(parent: self), rexle: nil)
+      
       super(name, value: value, attributes: attributes, rexle: rexle)
       
-      @boundary_box = [[0,0,0,0]]
     end
     
     def self.attr2_accessor(*a)
@@ -177,6 +179,7 @@ class Svgle < Rexle
   end  
   
   class Style < Element
+    
 
   end  
   
@@ -197,8 +200,8 @@ class Svgle < Rexle
 
 
   def initialize(x=nil, callback: nil)
-    super x
-    add_css()
+    super x    
+    find_add_css()
     @callback = callback
   end
   
@@ -212,34 +215,54 @@ class Svgle < Rexle
   
   private
   
-  def add_css()
+  def find_add_css()
 
-    @doc.root.xpath('//style').each do |e|
-      
-      # parse the CSS
-      
-      a = e.text.split(/}/)[0..-2].map do |entry|
+    @doc.root.xpath('//style').each {|e|  add_css e.text }   
 
-        raw_selector,raw_styles = entry.split(/{/,2)
+    # check for an external CSS file
+    if @instructions and @instructions.any? then
 
-        h = raw_styles.split(/;/).inject({}) do |r, x| 
-          k, v = x.split(/:/,2).map(&:strip)
-          r.merge(k.to_sym => v)
-        end
+      hrefs = @instructions.inject([]) do |r,x| 
 
-        [raw_selector.split(/,\s*/).map(&:strip), h]
-      end      
+        if x[0] =~ /xml-stylesheet/i and x[1] =~ /text\/css/i then
 
-      
-      # add the CSS style attributes to the element
-      # e.g. a = [[['line'],{stroke: 'green'}]]
-      
-      a.each do |selectors, style|
-        selectors.each do |selector|
-          style.each {|k,v| self.at_css(selector).style[k] = v }
+          r << x[1][/href\s*=\s*["']([^'"]+)/,1]
+        else
+          r
         end
       end
       
+      add_css hrefs.map{|x| RXFHelper.read(x).first}.join
+      
+    end
+
+
+  end
+  
+  def add_css(s)
+
+    # parse the CSS
+    
+    a = s.split(/}/)[0..-2].map do |entry|
+
+      raw_selector,raw_styles = entry.split(/{/,2)
+
+      h = raw_styles.split(/;/).inject({}) do |r, x| 
+        k, v = x.split(/:/,2).map(&:strip)
+        r.merge(k.to_sym => v)
+      end
+
+      [raw_selector.split(/,\s*/).map(&:strip), h]
+    end      
+
+    
+    # add each CSS style attribute to the element
+    # e.g. a = [[['line'],{stroke: 'green'}]]
+    
+    a.each do |selectors, style|
+      selectors.each do |selector|
+        style.each {|k,v| self.at_css(selector).style[k] = v }
+      end
     end
     
   end
