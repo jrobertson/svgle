@@ -18,8 +18,10 @@ require 'rxfhelper'
 
 DEFAULT_CSS = <<CSS
 
+svg {background-color: white}
 rect {fill: yellow}
 line, polyline {stroke: green; stroke-width: 3}
+text {fill: red}
 
 CSS
 
@@ -196,7 +198,7 @@ class Svgle < Rexle
   
   
   class Svg < Element
-    attr2_accessor *%i(width height)
+    attr2_accessor *%i(width height background-color)
     def boundary()
       [0,0,0,0]
     end    
