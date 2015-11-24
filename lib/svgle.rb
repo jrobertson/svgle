@@ -11,6 +11,17 @@ require 'rxfhelper'
 #    * http://www.w3schools.com/svg/svg_reference.asp
 #    * http://tutorials.jenkov.com/svg/svg-transformation.html#transformation-example
 
+# hotspot related:
+# http://stackoverflow.com/questions/481144/equation-for-testing-if-a-point-is-inside-a-circle
+# http://stackoverflow.com/questions/7946187/point-and-ellipse-rotated-position-test-algorithm
+# computational geometry - ruby http://sourceforge.net/projects/ruby-comp-geom/
+
+DEFAULT_CSS = <<CSS
+
+rect {fill: yellow}
+line, polyline {stroke: green; stroke-width: 3}
+
+CSS
 
 class Style < Hash
 
@@ -51,7 +62,6 @@ class Attributes
 
       @style = Style.new(self, h)
 
-      h
     end
     @style
   end
@@ -66,6 +76,7 @@ class Svgle < Rexle
     def initialize(name=nil, value: nil, \
                           attributes: Attributes.new(parent: self), rexle: nil)
       
+      attributes.merge!(style: '') unless attributes.has_key? :style
       super(name, value: value, attributes: attributes, rexle: rexle)
       
     end
@@ -217,6 +228,10 @@ class Svgle < Rexle
   
   def find_add_css()
 
+    # add the default CSS
+    add_css DEFAULT_CSS
+
+
     @doc.root.xpath('//style').each {|e|  add_css e.text }   
 
     # check for an external CSS file
@@ -258,10 +273,17 @@ class Svgle < Rexle
     
     # add each CSS style attribute to the element
     # e.g. a = [[['line'],{stroke: 'green'}]]
-    
-    a.each do |selectors, style|
+
+    a.each do |x|
+
+      selectors, style = x
+
       selectors.each do |selector|
-        style.each {|k,v| self.at_css(selector).style[k] = v }
+
+        style.each do |k,v|
+          self.css(selector).each {|element| element.style[k] = v }
+        end
+
       end
     end
     
