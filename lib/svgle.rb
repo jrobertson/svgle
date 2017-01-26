@@ -65,6 +65,17 @@ class Svgle < Domle
     end
   end
   
+  class Image < Element
+    
+    attr2_accessor *%i(x y width height)
+    
+    def boundary()
+      x1, y1, w, h = [x, y, width, height].map(&:to_i)
+      [x1, y1, x1+w, y1+h]
+    end    
+    
+  end    
+  
   class Path < Element
     attr2_accessor *%i(d stroke stroke-width fill)
     def boundary()
@@ -121,6 +132,7 @@ class Svgle < Domle
   def find_add_css()
 
     # add the default CSS
+
     add_css DEFAULT_CSS
 
 
@@ -151,6 +163,7 @@ class Svgle < Domle
       ellipse: Svgle::Ellipse,
       line: Svgle::Line,
       g: Svgle::G,
+      image: Svgle::Image,
       svg: Svgle::Svg,
       script: Svgle::Script,
       style: Svgle::Style,
