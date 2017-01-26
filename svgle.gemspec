@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'svgle'
-  s.version = '0.4.1'
+  s.version = '0.4.2'
   s.summary = 'Svgle (SVG + Domle) generates an SVG Document Object Model from the given SVG. Suitable for accessing, or modifying SVG elements as objects.'
   s.authors = ['James Robertson']
   s.files = Dir['lib/svgle.rb']

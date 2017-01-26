@@ -67,12 +67,30 @@ class Svgle < Domle
   
   class Image < Element
     
-    attr2_accessor *%i(x y width height)
+    attr2_accessor *%i(x y width height xlink:href src)
     
     def boundary()
       x1, y1, w, h = [x, y, width, height].map(&:to_i)
       [x1, y1, x1+w, y1+h]
     end    
+    
+    def src=(s)
+      
+      @src = s
+      
+      self.attributes[:'xlink:href'] = if s =~ /^http/ then
+        
+        r, _ = RXFHelper.read(s)
+        filepath = '/tmp/' + File.basename(s)
+        File.write filepath, r
+        
+        filepath
+        
+      else
+        s
+      end
+      
+    end      
     
   end    
   
