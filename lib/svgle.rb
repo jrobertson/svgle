@@ -145,35 +145,13 @@ class Svgle < Domle
   end  
   
   
-  private
-  
-  def find_add_css()
-
-    # add the default CSS
-
+  protected
+    
+  def add_default_css()
     add_css DEFAULT_CSS
+  end  
 
-
-    @doc.root.xpath('//style').each {|e|  add_css e.text }   
-
-    # check for an external CSS file
-    if @instructions and @instructions.any? then
-
-      hrefs = @instructions.inject([]) do |r,x| 
-
-        if x[0] =~ /xml-stylesheet/i and x[1] =~ /text\/css/i then
-
-          r << x[1][/href\s*=\s*["']([^'"]+)/,1]
-        else
-          r
-        end
-      end
-      
-      add_css hrefs.map{|x| RXFHelper.read(x).first}.join
-      
-    end
-
-  end
+  private
   
   def defined_elements()
     {
