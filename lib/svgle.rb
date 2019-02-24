@@ -79,10 +79,9 @@ class Svgle < Domle
       @src = s
       
       self.attributes[:'xlink:href'] = if s =~ /^http/ then
-        
-        r, _ = RXFHelper.read(s)
-        filepath = '/tmp/' + File.basename(s)
-        File.write filepath, r
+                
+        filepath = Tempfile.new('svgle').path + File.basename(s)
+        File.write filepath, RXFHelper.read(s).first
         
         filepath
         
