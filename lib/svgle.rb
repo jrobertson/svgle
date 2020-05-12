@@ -28,7 +28,15 @@ CSS
 
 
 class Svgle < Domle
+
   
+  class SvgElement < Element
+    attr2_accessor *%i(stroke stroke-width)
+  end  
+  
+  class Shape < SvgElement
+    attr2_accessor *%i(fill)
+  end
   
   class A < Element
     # undecided how to implement this 
@@ -36,14 +44,14 @@ class Svgle < Domle
     #attr2_accessor *%i(href)
   end    
   
-  class Circle < Element
-    attr2_accessor *%i(cx cy r stroke stroke-width)
+  class Circle < Shape
+    attr2_accessor *%i(cx cy r)
     def boundary()
       [0,0,0,0]
     end    
   end
 
-  class Ellipse < Element
+  class Ellipse < Shape
     attr2_accessor *%i(cx cy rx ry)
     def boundary()
       [0,0,0,0]
@@ -57,7 +65,7 @@ class Svgle < Domle
     end    
   end
 
-  class Line < Element
+  class Line < SvgElement
     attr2_accessor *%i(x1 y1 x2 y2)
     
     def boundary()
@@ -93,30 +101,30 @@ class Svgle < Domle
     
   end    
   
-  class Path < Element
-    attr2_accessor *%i(d stroke stroke-width fill)
+  class Path < Shape
+    attr2_accessor *%i(d)
     def boundary()
       [0,0,0,0]
     end    
   end  
     
-  class Polygon < Element
+  class Polygon < Shape
     attr2_accessor *%i(points)
     def boundary()
       [0,0,0,0]
     end    
   end
 
-  class Polyline < Element
+  class Polyline < Shape
     attr2_accessor *%i(points)
     def boundary()
       [0,0,0,0]
     end    
   end    
   
-  class Rect < Element
+  class Rect < Shape
     
-    attr2_accessor *%i(x y width height rx ry)
+    attr2_accessor *%i(x y rx ry)
     
     def boundary()
       x1, y1, w, h = [x, y, width, height].map(&:to_i)
@@ -131,6 +139,7 @@ class Svgle < Domle
       [0,0,0,0]
     end    
   end
+
   
   class Text < Element
     attr2_accessor *%i(x y fill)
@@ -138,6 +147,10 @@ class Svgle < Domle
       [0,0,0,0]
     end    
   end    
+  
+  def initialize(src='<svg/>', callback: nil, rexle: self, debug: false)
+    super(src, callback: callback, rexle: rexle, debug: debug)
+  end
   
   def inspect()    
     "#<Svgle:%s>" % [self.object_id]
@@ -148,6 +161,7 @@ class Svgle < Domle
     
   def add_default_css()
     add_css DEFAULT_CSS
+    add_inline_css()
   end  
 
   private
