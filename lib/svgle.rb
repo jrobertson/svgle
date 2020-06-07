@@ -16,8 +16,9 @@ require 'domle'
 # http://stackoverflow.com/questions/7946187/point-and-ellipse-rotated-position-test-algorithm
 # computational geometry - ruby http://sourceforge.net/projects/ruby-comp-geom/
 
-DEFAULT_CSS = <<CSS
+DEFAULT_SVGLE_CSS = <<CSS
 
+g  {background-color: orange}
 svg {background-color: white}
 rect {fill: yellow}
 line, polyline {stroke: green; stroke-width: 3}
@@ -31,14 +32,20 @@ class Svgle < Domle
 
   
   class SvgElement < Element
+    
+    @attr_map = {}
+    attr_reader :attr_map
+    
     attr2_accessor *%i(stroke stroke-width)
+
+    
   end  
   
   class Shape < SvgElement
     attr2_accessor *%i(fill)
   end
   
-  class A < Element
+  class A < SvgElement
     # undecided how to implement this 
     #  see http://stackoverflow.com/questions/12422668/getting-xlinkhref-attribute-of-the-svg-image-element-dynamically-using-js-i
     #attr2_accessor *%i(href)
@@ -58,7 +65,7 @@ class Svgle < Domle
     end    
   end    
 
-  class G < Element
+  class G < SvgElement
     attr2_accessor *%i(fill opacity)
     def boundary()
       [0,0,0,0]
@@ -73,7 +80,7 @@ class Svgle < Domle
     end
   end
   
-  class Image < Element
+  class Image < SvgElement
     
     attr2_accessor *%i(x y width height xlink:href src)
     
@@ -133,7 +140,7 @@ class Svgle < Domle
     
   end  
   
-  class Svg < Element
+  class Svg < SvgElement
     attr2_accessor *%i(width height background-color)
     def boundary()
       [0,0,0,0]
@@ -141,10 +148,23 @@ class Svgle < Domle
   end
 
   
-  class Text < Element
+  class Text < SvgElement
+    
     attr2_accessor *%i(x y fill)
+
     def boundary()
       [0,0,0,0]
+    end    
+    
+    def text=(raw_s)    
+      
+      oldval = @child_elements.first
+
+      r = super(raw_s)
+      @obj.text = raw_s if oldval != raw_s
+      
+      return r        
+      
     end    
   end    
   
@@ -160,7 +180,8 @@ class Svgle < Domle
   protected
     
   def add_default_css()
-    add_css DEFAULT_CSS
+    add_css Object.const_get self.class.to_s + '::' + 'DEFAULT_' + 
+        self.class.to_s.upcase + '_CSS'
     add_inline_css()
   end  
 
@@ -168,20 +189,20 @@ class Svgle < Domle
   
   def defined_elements()
     {
-      circle: Svgle::Circle,
-      ellipse: Svgle::Ellipse,
-      line: Svgle::Line,
-      g: Svgle::G,
-      image: Svgle::Image,
-      svg: Svgle::Svg,
-      script: Svgle::Script,
-      style: Svgle::Style,
+      circle: Circle,
+      ellipse: Ellipse,
+      line: Line,
+      g: G,
+      image: Image,
+      svg: Svg,
+      script: Script,
+      style: Style,
       doc: Rexle::Element,
-      polygon: Svgle::Polygon,
-      polyline: Svgle::Polyline,
-      path: Svgle::Path,
-      rect: Svgle::Rect,
-      text: Svgle::Text
+      polygon: Polygon,
+      polyline: Polyline,
+      path: Path,
+      rect: Rect,
+      text: Text
     }    
   end
 
